@@ -19,5 +19,5 @@ from django.contrib import admin
 urlpatterns = [
     url(r'^admin/', admin.site.urls),
     url(r'^', include('django.contrib.auth.urls')),
-    url(r'', include('estore.urls')),
+    url(r'', include('estore.urls')), #這行是一定進得去的，所以要加到最後一個
 ]
