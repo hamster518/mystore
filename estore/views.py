@@ -13,9 +13,35 @@ from .models import Order, Product
 
 
 # Create your views here.
-class CartDetailFromRequest(generic.DetailView):
+class CartItemDelete(generic.DeleteView):
+    def delete(self, request, *args, **kwargs):
+        self.object = self.get_object()
+        success_url = self.get_success_url()
+        self.request.cart.items.remove(self.object)
+        return HttpResponseRedirect(success_url)
+
+    def get_object(self, queryset=None):
+        return self.request.cart.items.get(id=self.kwargs.get('pk'))
+
+    def get_success_url(self):
+        messages.warning(self.request, '成功將 {} 從購物車刪除!'.format(self.object.title))
+        return reverse('cart_detail')
+    
+class CartDetailMixin(object):
     def get_object(self):
         return self.request.cart
+
+class CartDetailFromRequest(CartDetailMixin, generic.DetailView):
+    pass
+
+
+class CartDelete(CartDetailMixin, generic.DeleteView):
+    def get_success_url(self):
+        messages.warning(self.request, '已清空購物車')
+        return reverse('cart_detail')
+
+    def get(self, request, *args, **kwargs):
+        return redirect('cart_detail')
 
 class OrderDetailMixin(object):
     def get_object(self):
@@ -80,7 +106,8 @@ class OrderPayWithCreditCard(OrderDetailMixin, LoginRequiredMixin, generic.Detai
 
         return redirect('order_detail', token=self.object.token)
 
-
+#產品列表
+#PermissionRequiredMixin 權限
 class ProductList(PermissionRequiredMixin, generic.ListView):
     model = Product
     def has_permission(self):
@@ -89,9 +116,11 @@ class ProductList(PermissionRequiredMixin, generic.ListView):
         else:
             return True
 
+#產品詳細訊息
 class ProductDetail(generic.DetailView):
     model = Product
 
+#產品創建
 class ProductCreate(PermissionRequiredMixin, generic.CreateView):
     permission_required = 'estore.add_product'
     model = Product
@@ -101,6 +130,7 @@ class ProductCreate(PermissionRequiredMixin, generic.CreateView):
         messages.success(self.request, '產品已新增')
         return reverse('dashboard_product_list')
 
+#產品更新
 class ProductUpdate(PermissionRequiredMixin, generic.UpdateView):
     permission_required = 'estore.change_product'
     model = Product
@@ -110,6 +140,7 @@ class ProductUpdate(PermissionRequiredMixin, generic.UpdateView):
         messages.success(self.request, '產品已變更')
         return reverse('dashboard_product_update', kwargs=self.kwargs)
 
+#產品加入購物車
 class ProductAddToCart(generic.DetailView):
     model = Product
     http_method_names = ['post']
@@ -121,12 +152,13 @@ class ProductAddToCart(generic.DetailView):
         messages.success(self.request, '已加入購物車')
         return redirect('product_detail', pk=self.object.id)
 
+#使用者列表
 class UserList(PermissionRequiredMixin, generic.ListView):
     permission_required = 'auth.change_user'
     model = User
     template_name = 'estore/dashboard_user_list.html'
 
-
+#添加使用者
 class UserAddToStaff(PermissionRequiredMixin, generic.UpdateView):
     permission_required = 'auth.change_user'
     model = User

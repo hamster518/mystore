@@ -4,12 +4,17 @@
 {% block content %}
     <div class="row">
         <div class="col-md-12">
+            <form action="{% url 'cart_delete' %}" method="POST" onsubmit="return confirm('你確定要清空整個購物車嗎？');">
+                {% csrf_token %}
+                {% bootstrap_button '清空購物車' button_type='submit' button_class='btn-lg btn-link pull-right'%}
+            </form>
             <h2> 購物車 </h2>
             <table class="table table-bordered">
                 <thead>
                 <tr>
                     <th colspan="2">商品資訊</th>
                     <th>單價</th>
+                    <th>操作選項</th>
                 </tr>
                 </thead>
                 <tbody>
@@ -31,6 +36,12 @@
                         </td>
                         <td>
                             {{ product.price }}
+                        </td>
+                        <td>
+                            <form action="{% url 'cart_item_delete' product.id %}" method="POST">
+                                {% csrf_token %}
+                                {% bootstrap_button '<i class="fa fa-trash"></i>' button_type='submit' button_class='btn-link'%}
+                            </form>
                         </td>
                     </tr>
                 {% endfor %}
