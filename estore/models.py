@@ -20,10 +20,10 @@ class Cart(models.Model):
 
     def total_price(self):
         sum = 0
-        for product in self.items.all():
-            sum += product.price
+        for cart_item in self.cart_items_set.all():
+            sum += cart_item.product.price * cart_item.quantity
         return sum
-    
+
 class Cart_Items(models.Model):
     cart = models.ForeignKey(Cart, on_delete=models.CASCADE)
     product = models.ForeignKey(Product, on_delete=models.CASCADE)
