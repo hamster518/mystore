@@ -54,6 +54,10 @@ class CartItemUpdate(generic.UpdateView):
         messages.success(self.request, '成功變更數量')
         return reverse('cart_detail')
 
+class OrderList(LoginRequiredMixin, generic.ListView):
+    def get_queryset(self):
+        return self.request.user.order_set.all()
+
 class OrderDetailMixin(object):
     def get_object(self):
         return get_object_or_404(self.request.user.order_set, token=uuid.UUID(self.kwargs.get('token')))
@@ -94,7 +98,7 @@ class OrderCreateCartCheckout(LoginRequiredMixin, generic.CreateView):
             )
             each_item.product.quantity = each_item.product.quantity - each_item.quantity
             each_item.product.save()
-            
+
         self.request.cart.cart_items_set.all().delete()
 
         return HttpResponseRedirect(self.get_success_url())
